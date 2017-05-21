@@ -1,1 +1,2 @@
 pipeline-maven:2.3.0
+powershell:1.3.0

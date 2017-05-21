@@ -11,6 +11,7 @@ Using openshift source-to-image to create a proper Jenkis image.
 
 - Started build `oc start-build custom-jenkins-build`
 
+Notice that is creating the new images (downloading base image,etc) and it could take time so do wait for a while until finished.
 ```
 oc logs custom-jenkins-build-2-build
 
@@ -38,17 +39,15 @@ Pushed 6/7 layers, 95% complete
 Pushed 7/7 layers, 100% complete
 Push successful
 ```
-- Created tags
+- Created tags `oc get istag`
 
 ```
-oc get istag
 NAME               DOCKER REF                                                                                                         UPDATED         IMAGENAME
 custom-jenkins:1   172.30.1.1:5000/myproject/custom-jenkins@sha256:e68b55c535a44a2b14456b6dfbc336dc3a7b47c174607b431df7ee230255e7a5   3 minutes ago   sha256:e68b55c535a44a2b14456b6dfbc336dc3a7b47c174607b431df7ee230255e7a5
 ```
 
-- Created image-stream 
+- Created image-stream `oc get is` 
 ```
-oc get is
 NAME             DOCKER REPO                                TAGS      UPDATED
 custom-jenkins      1         4 minutes ago
 
@@ -62,10 +61,9 @@ NAME                       DESCRIPTION                                       PAR
 custom-jenkins-ephimeral   Jenkins service, without persistent storage....   6 (all set)   6
 ````
 
-- Create application for new image
+- Create application for new image `oc new-app custom-jenkins-ephimeral`
 
 ```
-Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc new-app custom-jenkins-ephimeral
 --> Deploying template "openshift/custom-jenkins-ephimeral" to project myproject
 
      Jenkins (Ephemeral)
@@ -95,3 +93,19 @@ Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc new-app custom-jenkins-eph
     Run 'oc status' to view your app.
 
 ```
+- Wait until jenkis is running
+
+^CEnekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc get pods
+NAME                           READY     STATUS      RESTARTS   AGE
+custom-jenkins-build-1-build   0/1       Completed   0          14m
+jenkins-1-f4qf8                1/1       Running     0          27s
+
+- And the route has been created 
+
+Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc get route
+NAME      HOST/PORT                                 PATH      SERVICES   PORT      TERMINATION     WILDCARD
+jenkins   jenkins-myproject.192.168.99.101.nip.io             jenkins    <all>     edge/Redirect   None
+
+- Access to its route in the browser, a see what plugins has been installed
+
+
