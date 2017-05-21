@@ -1,2 +1,3 @@
 pipeline-maven:2.3.0
 maven-plugin:2.15.1
+maven-metadata-plugin:1.5.0

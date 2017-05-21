@@ -109,3 +109,43 @@ jenkins   jenkins-myproject.192.168.99.101.nip.io             jenkins    <all>  
 - Access to its route in the browser, a see what plugins has been installed
 
 
+- How to add a new plugin
+
+- add it to plugins.txt
+
+- create new build
+
+- delete dc
+
+- start new app
+
+Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc delete dc jenkins
+deploymentconfig "jenkins" deleted
+Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc new-app custom-jenkins-ephimeral
+--> Deploying template "openshift/custom-jenkins-ephimeral" to project myproject
+
+     Jenkins (Ephemeral)
+     ---------
+     Jenkins service, without persistent storage.
+     WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing.
+
+     A Jenkins service has been created in your project.  Log into Jenkins with your OpenShift account.  The tutorial at https://github.com/openshift/origin/blob/master/examples/jenkins/README.md contains more information about using this template.
+
+
+     * With parameters:
+        * Jenkins Service Name=jenkins
+        * Jenkins JNLP Service Name=jenkins-jnlp
+        * Enable OAuth in Jenkins=true
+        * Memory Limit=512Mi
+        * Jenkins ImageStream Namespace=myproject
+        * Jenkins ImageStreamTag=custom-jenkins:latest
+
+--> Creating resources ...
+    error: routes "jenkins" already exists
+    deploymentconfig "jenkins" created
+    error: serviceaccounts "jenkins" already exists
+    error: rolebinding "jenkins_edit" already exists
+    error: services "jenkins-jnlp" already exists
+    error: services "jenkins" already exists
+--> Failed
+
