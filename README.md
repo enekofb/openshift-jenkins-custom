@@ -149,3 +149,103 @@ Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc new-app custom-jenkins-eph
     error: services "jenkins" already exists
 --> Failed
 
+
+A question?
+
+- Do we need to recreate the app everytime we change the application?
+
+No, if we have a look in deploymentconfig we have some triggers
+
+```
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - jenkins
+        from:
+          kind: ImageStreamTag
+          name: ${JENKINS_IMAGE_STREAM_TAG}
+          namespace: ${NAMESPACE}
+        lastTriggeredImage: ""
+      type: ImageChange
+```
+
+where one of it is Image change configuration so it means that deployment config controller is listenting
+for changes in the image in order to recreate the deployment.
+
+This can be seen by looking at the deployments done for jenkins
+
+```
+Enekos-MacBook-Pro:openshift-jenkins-custom eneko$ oc describe dc jenkins
+Name:		jenkins
+Namespace:	myproject
+Created:	6 minutes ago
+Labels:		app=custom-jenkins-ephimeral
+		template=custom-jenkins-ephimeral-template
+Annotations:	openshift.io/generated-by=OpenShiftNewApp
+Latest Version:	2
+Selector:	name=jenkins
+Replicas:	1
+Triggers:	Image(custom-jenkins@latest, auto=true), Config
+Strategy:	Recreate
+Template:
+  Labels:		app=custom-jenkins-ephimeral
+			name=jenkins
+  Annotations:		openshift.io/generated-by=OpenShiftNewApp
+  Service Account:	jenkins
+  Containers:
+   jenkins:
+    Image:	172.30.1.1:5000/myproject/custom-jenkins@sha256:31800df7380f6dd8afd3614d7de78539ef79effcf2f8064a3f657757a1bb53e4
+    Port:
+    Limits:
+      memory:	512Mi
+    Liveness:	http-get http://:8080/login delay=420s timeout=3s period=10s #success=1 #failure=30
+    Readiness:	http-get http://:8080/login delay=3s timeout=3s period=10s #success=1 #failure=3
+    Volume Mounts:
+      /var/lib/jenkins from jenkins-data (rw)
+    Environment Variables:
+      OPENSHIFT_ENABLE_OAUTH:		true
+      OPENSHIFT_ENABLE_REDIRECT_PROMPT:	true
+      KUBERNETES_MASTER:		https://kubernetes.default:443
+      KUBERNETES_TRUST_CERTIFICATES:	true
+      JNLP_SERVICE_NAME:		jenkins-jnlp
+  Volumes:
+   jenkins-data:
+    Type:	EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+
+Deployment #2 (latest):
+	Name:		jenkins-2
+	Created:	2 minutes ago
+	Status:		Complete
+	Replicas:	1 current / 1 desired
+	Selector:	deployment=jenkins-2,deploymentconfig=jenkins,name=jenkins
+	Labels:		app=custom-jenkins-ephimeral,openshift.io/deployment-config.name=jenkins,template=custom-jenkins-ephimeral-template
+	Pods Status:	1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Deployment #1:
+	Created:	6 minutes ago
+	Status:		Complete
+	Replicas:	0 current / 0 desired
+
+Events:
+  FirstSeen	LastSeen	Count	From				SubObjectPath	Type		Reason			Message
+  ---------	--------	-----	----				-------------	--------	------			-------
+  6m		6m		1	{deploymentconfig-controller }			Normal		DeploymentCreated	Created new replication controller "jenkins-1" for version 1
+  2m		2m		1	{deploymentconfig-controller }			Normal		DeploymentCreated	Created new replication controller "jenkins-2" for version 2
+```
+
+where the latests one points to ournew version
+
+```
+Deployment #2 (latest):
+	Name:		jenkins-2
+	Created:	2 minutes ago
+	Status:		Complete
+	Replicas:	1 current / 1 desired
+	Selector:	deployment=jenkins-2,deploymentconfig=jenkins,name=jenkins
+	Labels:		app=custom-jenkins-ephimeral,openshift.io/deployment-config.name=jenkins,template=custom-jenkins-ephimeral-template
+	Pods Status:	1 Running / 0 Waiting / 0 Succeeded / 0 Failed
+
+```
+
+And we can confirm that the plugin has been installed img maven-metadata-plugin-installed
